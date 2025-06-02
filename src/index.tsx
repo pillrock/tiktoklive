@@ -3,10 +3,13 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { NotificationProvider } from './contexts/Notification';
+import { CmtSpeechProvider } from './contexts/commentSpeech';
 const root = createRoot(document.body);
 
 root.render(
   <NotificationProvider>
-    <App />
+    <CmtSpeechProvider>
+      <App />
+    </CmtSpeechProvider>
   </NotificationProvider>
 );

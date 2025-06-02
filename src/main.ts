@@ -6,6 +6,10 @@ import dotenv from 'dotenv';
 import connectToLive, { disconnectLive } from './services/tiktokLive';
 import env from '../env.json';
 import { windowControl } from './ipcControl/windowControl';
+import { textToMp3 } from './services/textToMp3';
+// import { textToMp3 } from './services/textToMp3';
+// import { playMp3AndDelete } from './services/playSound';
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
@@ -17,6 +21,7 @@ updateElectronApp({
   repo: env.githubRepo, // Repository GitHub của bạn
   updateInterval: '1 hour', // Kiểm tra cập nhật mỗi giờ
 });
+
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -50,8 +55,10 @@ const createWindow = () => {
       currentConnection = null;
     }
     try {
-      currentConnection = await connectToLive(username, (chat) => {
+      currentConnection = await connectToLive(username, async (chat) => {
         event.sender.send('tiktok-chat', chat);
+        // const path = await textToMp3(`${chat.nickname}, ${chat.comment}`);
+        // await playMp3AndDelete(path);
       });
       // Kết nối thành công, mở launcher
     } catch (error) {
@@ -62,15 +69,38 @@ const createWindow = () => {
       console.error('Connect error:', error);
     }
   });
+  ipcMain.on('tiktok-disconnect', async (event) => {
+    try {
+      await disconnectLive();
+      event.sender.send('tiktok-disconnected');
+      // Nếu có cleanup khác thì thêm ở đây
+    } catch (error) {
+      console.error('Disconnect error:', error);
+    }
+    currentConnection = null;
+  });
   windowControl(mainWindow);
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
+ipcMain.handle(
+  'text-to-mp3',
+  async (_event, text: string, filename?: string) => {
+    try {
+      const path = await textToMp3(text, filename);
+      return { success: true, path };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+);
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

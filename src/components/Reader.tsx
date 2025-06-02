@@ -1,13 +1,51 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Play, Pause, MessageCircle } from 'lucide-react';
 import NotificationContext from '../contexts/Notification';
+import commentSpeechContext from '../contexts/commentSpeech';
 
 const TikTokLiveReader = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [comments, setComments] = useState([]);
   const [liveUrl, setLiveUrl] = useState('');
   const { setMessage } = useContext(NotificationContext);
+  const { isPlaying, setMsg } = useContext(commentSpeechContext);
+  const [commentIsBroadcasted, setCommentIsBroadcasted] = useState([]);
+  //RESET
+  useEffect(() => {
+    const handleDisconnected = () => {
+      setComments([]);
+      setCommentIsBroadcasted([]);
+      setMsg('');
+    };
+    window.electron?.ipcRenderer.on('tiktok-disconnected', handleDisconnected);
+    return () => {
+      window.electron?.ipcRenderer.removeListener(
+        'tiktok-disconnected',
+        handleDisconnected
+      );
+    };
+  }, []);
 
+  /// logic đọc bình luận chọn lọc, khi nhiều CMT quá thì đọc bước nhảy
+  useEffect(() => {
+    const numberCommentLimit = 5;
+    if (commentIsBroadcasted.length === 0) return;
+    if (isPlaying) {
+      return;
+    } else {
+      if (setCommentIsBroadcasted.length >= numberCommentLimit) {
+        setCommentIsBroadcasted([]);
+        return;
+      }
+    }
+
+    setMsg(commentIsBroadcasted[0]);
+    return () => {
+      setCommentIsBroadcasted((prev) => [
+        ...prev.slice(1, commentIsBroadcasted.length),
+      ]);
+    };
+  }, [commentIsBroadcasted]);
   // Kết nối và ngắt kết nối tới server qua IPC
   const handleConnect = () => {
     if (!isConnected && liveUrl.trim()) {
@@ -42,6 +80,10 @@ const TikTokLiveReader = () => {
       _event: string,
       chat: { nickname: string; comment: string }
     ) => {
+      setCommentIsBroadcasted((prev) => [
+        `${chat.nickname} bình luận: ${chat.comment}`,
+        ...prev.slice(0, 20),
+      ]);
       setComments((prev) => [
         {
           id: Date.now() + Math.random(),
@@ -66,23 +108,21 @@ const TikTokLiveReader = () => {
           <div className="mb-4 inline-flex h-16 w-16 transform items-center justify-center rounded-2xl bg-black transition-transform duration-200 hover:scale-105">
             <MessageCircle className="h-8 w-8 text-white" />
           </div>
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            TikTok Live Reader
-          </h1>
-          <p className="text-gray-600">Theo dõi bình luận trực tiếp</p>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">TikTok</h1>
+          <p className="text-gray-600">pillrock</p>
         </div>
 
         {/* Connection Card */}
         <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
           <div className="mb-4">
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Đường dẫn TikTok Live
+              Nickname (sau dấu @)
             </label>
             <input
               type="text"
               value={liveUrl}
               onChange={(e) => setLiveUrl(e.target.value)}
-              placeholder="https://www.tiktok.com/@username/live"
+              placeholder="datthanh_369"
               className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-black focus:outline-none"
               disabled={isConnected}
             />

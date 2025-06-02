@@ -1,6 +1,6 @@
 {
-  "name": "PillRock",
-  "productName": "PillRock",
+  "name": "TikTokTun",
+  "productName": "TikTokTun",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pillrock/ElectronForgeViteTypeScript-TailwindCss-React--QuickStart.git"
+    "url": "https://github.com/pillrock/tiktoklive.git"
   },
   "license": "MIT",
   "devDependencies": {
@@ -53,10 +53,13 @@
     "dotenv": "^16.5.0",
     "electron-squirrel-startup": "^1.0.1",
     "lucide-react": "^0.511.0",
+    "node-gtts": "^2.0.2",
+    "play-sound": "^1.1.6",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.1",
+    "sound-play": "^1.1.0",
     "tiktok-live-connector": "^2.0.5-beta1",
     "update-electron-app": "^3.1.1"
   }

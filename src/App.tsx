@@ -2,6 +2,7 @@ import { MinusIcon, X } from 'lucide-react';
 import Notification from './components/Notification';
 import TikTokLiveReader from './components/Reader';
 import { useCallback } from 'react';
+import { TextToSpeech } from './components/TextToSpeech';
 
 export default function App() {
   const handleMinimizeWindow = useCallback(() => {
@@ -26,6 +27,7 @@ export default function App() {
           <X size={19} onClick={handleCloseWindow} />
         </span>
       </div>
+      <TextToSpeech />
       <TikTokLiveReader />
       <Notification />;
     </>

@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.on(channel, (_event, ...args) => func(_event, ...args)),
     removeListener: (channel, func) =>
       ipcRenderer.removeListener(channel, func),
+    invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args), // Thêm dòng này
   },
 });
