@@ -1,17 +1,20 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { updateElectronApp } from 'update-electron-app';
 import dotenv from 'dotenv';
-dotenv.config();
+import connectToLive, { disconnectLive } from './services/tiktokLive';
+import env from '../env.json';
+import { windowControl } from './ipcControl/windowControl';
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
-console.log(process.env.GITHUB_REPO);
+let currentConnection: any = null;
+console.log(env.githubRepo);
 
 updateElectronApp({
-  repo: process.env.GITHUB_REPO, // Repository GitHub của bạn
+  repo: env.githubRepo, // Repository GitHub của bạn
   updateInterval: '1 hour', // Kiểm tra cập nhật mỗi giờ
 });
 const createWindow = () => {
@@ -19,9 +22,14 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    resizable: true,
     webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: false,
     },
+    frame: false,
   });
 
   // and load the index.html of the app.
@@ -32,7 +40,29 @@ const createWindow = () => {
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
   }
-
+  ipcMain.on('tiktok-connect', async (event, username) => {
+    if (currentConnection) {
+      try {
+        await disconnectLive();
+      } catch (error) {
+        console.error('Disconnect error:', error);
+      }
+      currentConnection = null;
+    }
+    try {
+      currentConnection = await connectToLive(username, (chat) => {
+        event.sender.send('tiktok-chat', chat);
+      });
+      // Kết nối thành công, mở launcher
+    } catch (error) {
+      event.sender.send(
+        'tiktok-error',
+        'Có lỗi xảy ra trong quá trình kết nối'
+      );
+      console.error('Connect error:', error);
+    }
+  });
+  windowControl(mainWindow);
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
 };

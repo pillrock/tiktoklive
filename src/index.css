@@ -1,1 +1,20 @@
 @import 'tailwindcss';
+::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #898691;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5e5858;
+}
+.app-region-drag {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+.app-region-no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

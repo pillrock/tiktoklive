@@ -1,12 +1,33 @@
+import { MinusIcon, X } from 'lucide-react';
+import Notification from './components/Notification';
+import TikTokLiveReader from './components/Reader';
+import { useCallback } from 'react';
+
 export default function App() {
+  const handleMinimizeWindow = useCallback(() => {
+    window.electron?.ipcRenderer.send('window-control', 'minimize');
+  }, []);
+  const handleCloseWindow = useCallback(() => {
+    window.electron?.ipcRenderer.send('window-control', 'close');
+  }, []);
   return (
-    <div className="flex h-screen flex-col items-center justify-center bg-gray-100">
-      <h1 className="mb-4 text-4xl font-bold text-blue-500">
-        Chúc mừng bạn đã chạy thành công dự án!
-      </h1>
-      <p className="text-lg text-gray-700">
-        Đây là ứng dụng Electron kết hợp với React và Tailwind CSS.
-      </p>
-    </div>
+    <>
+      <div className="header app-region-drag m-2 flex items-center justify-end gap-x-[2px]">
+        <span
+          className="app-region-no-drag p-2 hover:bg-gray-300 hover:opacity-80"
+          onClick={handleMinimizeWindow}
+        >
+          <MinusIcon size={19} onClick={handleMinimizeWindow} />
+        </span>
+        <span
+          className="app-region-no-drag p-2 hover:bg-gray-300 hover:opacity-80"
+          onClick={handleCloseWindow}
+        >
+          <X size={19} onClick={handleCloseWindow} />
+        </span>
+      </div>
+      <TikTokLiveReader />
+      <Notification />;
+    </>
   );
 }
